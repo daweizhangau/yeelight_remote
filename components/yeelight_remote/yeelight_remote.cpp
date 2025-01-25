@@ -24,24 +24,27 @@ namespace esphome {
                 inMessage = true;
                 inMessageCount = 0;
                 parity = 0;
+                messageParsed = false;
             }
             if (inMessage) {
                 if (inMessageCount == 1) {
-                    ESP_LOGD(TAG, "Found message id: %d", readByte);
+                    ESP_LOGV(TAG, "Found message id: %d", readByte);
                     if (previousMessageId == readByte) {
-                        ESP_LOGD(TAG, "This is the same as the previous message, so skipping this.");
+                        ESP_LOGV(TAG, "This is the same as the previous message, so skipping this.");
                         inMessage = false;
                     }
                     previousMessageId = readByte;
 
                 } else if (inMessageCount == 3) {
-                    ESP_LOGD(TAG, "Found command: %d", readByte);
+                    ESP_LOGV(TAG, "Found command: %d", readByte);
                     command = readByte;
                 } else if (inMessageCount == 7) {
-                    ESP_LOGD(TAG, "Parity got of: %d", readByte);
-                    ESP_LOGD(TAG, "Calculated parity of: %d", parity % 255);
-                    if (parity % 255 == readByte) {
-                        ESP_LOGD(TAG, "Parity is correct. Executing!");
+                    ESP_LOGV(TAG, "Parity got of: %d", readByte);
+                    calculatedParity = parity % 256;
+                    ESP_LOGV(TAG, "Calculated parity of: %d", calculatedParity);
+                    messageParsed = (calculatedParity == readByte);
+                    if (messageParsed) {
+                        ESP_LOGV(TAG, "Parity is correct. Executing!");
                         switch (command) {
                             case 0x01:
                                 this->handlePress();
@@ -58,9 +61,9 @@ namespace esphome {
                             case 0x05:
                                 this->handleTwistLeft();
                                 break;
-							case 0x06:
-								this->handleLongPress();
-								break;
+                            case 0x06:
+                                this->handleLongPress();
+                                break;
                         }
                     }
                     inMessage = false;
@@ -76,7 +79,7 @@ namespace esphome {
             ESP_LOGD(TAG, "Press!");
             this->press_trigger_->trigger();
         }
-		void YeelightRemote::handleLongPress() {
+        void YeelightRemote::handleLongPress() {
             ESP_LOGD(TAG, "Long press!");
             this->long_press_trigger_->trigger();
         }

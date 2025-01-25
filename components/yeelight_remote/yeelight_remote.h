@@ -21,10 +21,12 @@ namespace yeelight_remote {
 
     protected:
         uint16_t parity = 0;
+		uint16_t calculatedParity = 0;
 		uint8_t previousMessageId = 0;
         uint8_t inMessageCount = 0;
 		uint8_t command = 0;
 		bool inMessage = false;
+        bool messageParsed = false;
 
         void handle_char_(uint8_t readByte);
 		void handlePress();
